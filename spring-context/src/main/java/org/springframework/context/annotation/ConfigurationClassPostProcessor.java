@@ -259,6 +259,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
+	/**
+	 * 该方法在springboot的启动过程中只会被调用一次。
+	 * 最小配置下此时registry已经有7个内部配置类 + 1个springboot启动类
+	 * @param registry
+	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 		String[] candidateNames = registry.getBeanDefinitionNames();
