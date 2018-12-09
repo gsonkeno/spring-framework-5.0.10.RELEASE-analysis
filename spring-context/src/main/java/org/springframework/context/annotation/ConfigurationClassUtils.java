@@ -77,19 +77,24 @@ abstract class ConfigurationClassUtils {
 	 * @param beanDef the bean definition to check
 	 * @param metadataReaderFactory the current factory in use by the caller
 	 * @return whether the candidate qualifies as (any kind of) configuration class
+	 * 检查是否是配置类
 	 */
 	public static boolean checkConfigurationClassCandidate(BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 		String className = beanDef.getBeanClassName();
+		//如果className是空，就不是配置类
+		//如果存在工厂方法，也不是配置类
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
 
 		AnnotationMetadata metadata;
+		//springboot启动类会进入该分支
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
+		//先标记一下,ConfigurationClassPostProcessor类似的beanDef是满足该条件的
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
@@ -109,9 +114,13 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 判断metadata上是否存在@Configuration注解
+		// 标记一下 A不满足该条件,B满足
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// 判断metdata上是否存在Component,ComponentScan,Import,ImportResource注解或者含有Bean方法
+		// 标记一下 ConfigurationClassPostProcessor不满足该条件
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -120,6 +129,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
+		//设置order属性
 		Integer order = getOrder(metadata);
 		if (order != null) {
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
@@ -145,6 +155,8 @@ abstract class ConfigurationClassUtils {
 	 * @param metadata the metadata of the annotated class
 	 * @return {@code true} if the given class is to be processed as a full
 	 * configuration class, including cross-method call interception
+	 * springboot启动类是有Configuration注解的，因为注解继承性
+	 * @SpringBootApplication->@SpringBootConfiguration->@Configuration
 	 */
 	public static boolean isFullConfigurationCandidate(AnnotationMetadata metadata) {
 		return metadata.isAnnotated(Configuration.class.getName());
@@ -160,11 +172,13 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean isLiteConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
+		//是接口，直接返回false
 		if (metadata.isInterface()) {
 			return false;
 		}
 
 		// Any of the typical annotations found?
+		// 存在Component，ComponentScan，Import，ImportResource任意一个注解，直接返回true
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -186,6 +200,9 @@ abstract class ConfigurationClassUtils {
 	/**
 	 * Determine whether the given bean definition indicates a full {@code @Configuration}
 	 * class, through checking {@link #checkConfigurationClassCandidate}'s metadata marker.
+	 *
+	 * 判断"full".equals(bean.getAttribute(
+	 * "org.springframework.context.annotation.ConfigurationClassPostProcessor.configurationClass")
 	 */
 	public static boolean isFullConfigurationClass(BeanDefinition beanDef) {
 		return CONFIGURATION_CLASS_FULL.equals(beanDef.getAttribute(CONFIGURATION_CLASS_ATTRIBUTE));
@@ -194,6 +211,8 @@ abstract class ConfigurationClassUtils {
 	/**
 	 * Determine whether the given bean definition indicates a lite {@code @Configuration}
 	 * class, through checking {@link #checkConfigurationClassCandidate}'s metadata marker.
+	 * 判断"lite".equals(bean.getAttribute(
+	 * "org.springframework.context.annotation.ConfigurationClassPostProcessor.configurationClass")
 	 */
 	public static boolean isLiteConfigurationClass(BeanDefinition beanDef) {
 		return CONFIGURATION_CLASS_LITE.equals(beanDef.getAttribute(CONFIGURATION_CLASS_ATTRIBUTE));

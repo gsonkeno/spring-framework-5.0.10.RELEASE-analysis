@@ -160,12 +160,18 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * 解析候选配置类
+	 * @param configCandidates
+	 */
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
 		this.deferredImportSelectors = new LinkedList<>();
 
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
+				// springboot启动类会进入该分支，方法执行完后会注册启动类所在包
+				// 及其子包下的@Configuration,@Component的类
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
@@ -262,9 +268,11 @@ class ConfigurationClassParser {
 			throws IOException {
 
 		// Recursively process any member (nested) classes first
+		// 处理内部成员类
 		processMemberClasses(configClass, sourceClass);
 
 		// Process any @PropertySource annotations
+		// 处理@PropertySource注解
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -278,15 +286,19 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @ComponentScan annotations
+		// 处理@ComponentScan注解覆盖到的类
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
+				// 获取扫描到的Configuration,Component组件，注意这些组件在方法执行过程中
+				// 已注册到registry
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
+				// 可能需要递归处理
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
 					if (bdCand == null) {
