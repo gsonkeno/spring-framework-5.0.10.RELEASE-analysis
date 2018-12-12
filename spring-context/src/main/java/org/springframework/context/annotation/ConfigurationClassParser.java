@@ -170,8 +170,9 @@ class ConfigurationClassParser {
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
-				// springboot启动类会进入该分支，方法执行完后会注册启动类所在包
-				// 及其子包下的@Configuration,@Component的类
+				// springboot启动类会进入该分支，因为其属于注解类型的beanDef;
+				// 方法执行完后会注册启动类所在包
+				// 及其子包下的@Configuration,@Component注解的类
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
@@ -222,12 +223,16 @@ class ConfigurationClassParser {
 		return this.configurationClasses.keySet();
 	}
 
-
+	/**
+	 * springboot启动时第一次调用该方法时configClass指代的是springboot启动类
+ 	 */
 	protected void processConfigurationClass(ConfigurationClass configClass) throws IOException {
+		// 判断configClass是否应该跳过处理
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
 		}
 
+		// springboot启动第一次进入此处时,根据configClass获取到的existingClass
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
 			if (configClass.isImported()) {
@@ -246,12 +251,14 @@ class ConfigurationClassParser {
 		}
 
 		// Recursively process the configuration class and its superclass hierarchy.
+		// 递归处理配置类及其父类
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass);
 		}
 		while (sourceClass != null);
 
+		// doProcessConfigurationClass方法有非常大的可能会再次递归到该方法
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -305,6 +312,7 @@ class ConfigurationClassParser {
 						bdCand = holder.getBeanDefinition();
 					}
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+						// 该方法经过一些流程会再次进入doProcessConfigurationClass方法，递归点在这里
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
 				}
