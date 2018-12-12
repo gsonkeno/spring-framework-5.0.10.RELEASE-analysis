@@ -287,6 +287,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+			// B会进入该分支，beanDef被判断为合格的候选组件，且被设置isFullConfigurationCandidate
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
@@ -332,10 +333,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
+		// 目前的候选配置类只有springboot启动类一个配置类
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
-		// 目前已经解析到的只有springboot启动类一个配置类
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+			// 这句代码很重要，它会解析候选配置类candidates,极有可能会扫描出多个bean并注册到registry
 			parser.parse(candidates);
 			parser.validate();
 
@@ -349,6 +351,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 			// 一般的Configuration配置类中会有@Bean注解的方法，其返回值也会被当做一个BeanDef，是在此处处理的
+			// 这句代码也很重要，会扫描出多个bean并注册到registry
 			this.reader.loadBeanDefinitions(configClasses);
 			// 已处理的配置类集合增加元素
 			alreadyParsed.addAll(configClasses);
@@ -356,6 +359,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// 因为基于当前的候选配置类找到的一堆配置类已经注册到registry中，所以candidate是要清空
 			candidates.clear();
 			// 方法开头已经说过springboot启动模式最小配置下candidateNames含8个元素
+			// 当条件满足时，说明扫描出了更多的bean组件，这些组件当然有可能再衍生出更多的bean
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				// registry注册中心上的beanDef被当做新的候选配置类，newCandidateNames个数一般大于alreadyParsed的个数
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
@@ -370,7 +374,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					//旧的候选配置类不包括新的候选配置类，则继续处理
 					if (!oldCandidateNames.contains(candidateName)) {
 						BeanDefinition bd = registry.getBeanDefinition(candidateName);
-						//当bd符合Configuration验证且已解析配置类不包含bd时，bd才可以被当做下一个候选配置类继续被解析
+						// 当bd符合Configuration验证且已解析配置类不包含bd时，bd才可以被当做下一个候选配置类继续被解析
+						// while循环才会继续
 						if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
 								!alreadyParsedClasses.contains(bd.getBeanClassName())) {
 							candidates.add(new BeanDefinitionHolder(bd, candidateName));
@@ -388,7 +393,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			sbr.registerSingleton(IMPORT_REGISTRY_BEAN_NAME, parser.getImportRegistry());
 		}
 
-		//springboot启动时ConcurrentReferenceCachingMetadataReaderFactory，不进入该分支
+		//springboot启动时metadataReaderFactory属于ConcurrentReferenceCachingMetadataReaderFactory，不进入该分支
 		if (this.metadataReaderFactory instanceof CachingMetadataReaderFactory) {
 			// Clear cache in externally provided MetadataReaderFactory; this is a no-op
 			// for a shared cache since it'll be cleared by the ApplicationContext.
