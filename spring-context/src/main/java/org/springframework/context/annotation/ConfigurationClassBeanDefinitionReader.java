@@ -111,6 +111,7 @@ class ConfigurationClassBeanDefinitionReader {
 	/**
 	 * Read {@code configurationModel}, registering bean definitions
 	 * with the registry based on its contents.
+	 * 通过configurationModel的内部内容去注册beanDef
 	 */
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
@@ -135,14 +136,21 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// 1 如果配置类是被引入的，如配置类是@Import注解的值，则会注册这个configClass
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		// 2 如果配置类内部有@Bean方法，要去注册这个方法返回的bean
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 3 如果配置类上又通过@importResource引入了配置文件，则配置文件中的bean要在这里被注册
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// 4 处理配置类上通过@Import引入的实现了ImportBeanDefinitionRegistrar接口的类，这样的类被@Import引入
+		// 后，并不会被注册为bean。它跟registry类似，它是一个可以接收bean注册的类，像是一个bean注册中心
+		// 在这个接口中有一个方法registerBeanDefinitions，听名字就应该知道是干什么的了，这个方法内部可以注册
+		// bean到注册中心上去
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
