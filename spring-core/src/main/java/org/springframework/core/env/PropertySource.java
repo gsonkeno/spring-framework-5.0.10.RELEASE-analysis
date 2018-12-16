@@ -55,6 +55,8 @@ import org.springframework.util.ObjectUtils;
  * @see PropertySourcesPropertyResolver
  * @see MutablePropertySources
  * @see org.springframework.context.annotation.PropertySource
+ * 常见的几个子类有 RandomValuePropertySource，OriginTrackedMapPropertySource，
+ * OriginAwareSystemEnvironmentPropertySource, PropertiesPropertySource,MapPropertySource
  */
 public abstract class PropertySource<T> {
 
