@@ -1272,6 +1272,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param beanName the name of the bean
 	 * @param mbd the bean definition for the bean
 	 * @param bw the BeanWrapper with bean instance
+	 *  使用mbd填充BeanWarpper中包裹的bean
 	 */
 	protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw) {
 		if (bw == null) {
@@ -1330,9 +1331,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			PropertyDescriptor[] filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 			if (hasInstAwareBpps) {
+				// 遍历所有InstantiationAwareBeanPostProcessor实例设置属性字段值。
 				for (BeanPostProcessor bp : getBeanPostProcessors()) {
+					// AutowiredAnnotationBeanPostProcessor会进入此分支
 					if (bp instanceof InstantiationAwareBeanPostProcessor) {
 						InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+						// eg:参数filteredPds如下:
+						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=ceo]
+						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=class]
+						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=coo]
+						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=cto]
 						pvs = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvs == null) {
 							return;
