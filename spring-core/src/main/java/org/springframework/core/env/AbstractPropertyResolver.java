@@ -67,6 +67,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	public ConfigurableConversionService getConversionService() {
 		// Need to provide an independent DefaultConversionService, not the
 		// shared DefaultConversionService used by PropertySourcesPropertyResolver.
+		// 提供一个独立的DefaultConversionService,不与PropertySourcesPropertyResolver中使用的一样
 		ConfigurableConversionService cs = this.conversionService;
 		if (cs == null) {
 			synchronized (this) {
@@ -134,6 +135,10 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		this.ignoreUnresolvableNestedPlaceholders = ignoreUnresolvableNestedPlaceholders;
 	}
 
+	/**
+	 * 设置必须属性，不可缺
+	 * @param requiredProperties
+	 */
 	@Override
 	public void setRequiredProperties(String... requiredProperties) {
 		for (String key : requiredProperties) {
@@ -141,6 +146,9 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		}
 	}
 
+	/**
+	 * 如果有任何一个属性不可解析，就抛出异常
+	 */
 	@Override
 	public void validateRequiredProperties() {
 		MissingRequiredPropertiesException ex = new MissingRequiredPropertiesException();
@@ -195,6 +203,11 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		return value;
 	}
 
+	/**
+	 * 不严格解析属性
+	 * @param text the String to resolve
+	 * @return
+	 */
 	@Override
 	public String resolvePlaceholders(String text) {
 		if (this.nonStrictHelper == null) {
@@ -203,6 +216,12 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		return doResolvePlaceholders(text, this.nonStrictHelper);
 	}
 
+	/**
+	 * 严格解析属性
+	 * @param text
+	 * @return
+	 * @throws IllegalArgumentException
+	 */
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
 		if (this.strictHelper == null) {
@@ -222,6 +241,8 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * placeholders, as specified by each of those methods.
 	 * @since 3.2
 	 * @see #setIgnoreUnresolvableNestedPlaceholders
+	 * getProperty方法及其变种方法会隐式调用该方法
+	 * resolvePlaceholders方法不会调用，它有自己的处理策略
 	 */
 	protected String resolveNestedPlaceholders(String value) {
 		return (this.ignoreUnresolvableNestedPlaceholders ?

@@ -25,6 +25,10 @@ import org.springframework.lang.Nullable;
  * {@link org.springframework.core.convert.ConversionService ConversionService}
  * used when converting property values from one type to another.
  *
+ * 大多数（如果不是全部）{@link PropertyResolver}将实现配置界面
+ * 类型。 提供访问和自定义的工具
+ * {@link org.springframework.core.convert.ConversionService ConversionService}
+ * 将属性值从一种类型转换为另一种类型时使用。
  * @author Chris Beams
  * @since 3.1
  */
@@ -84,6 +88,7 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	 * the value set here to determine correct behavior when property values contain
 	 * unresolvable placeholders.
 	 * @since 3.2
+	 * 是否忽略占位符内的嵌套占位符
 	 */
 	void setIgnoreUnresolvableNestedPlaceholders(boolean ignoreUnresolvableNestedPlaceholders);
 

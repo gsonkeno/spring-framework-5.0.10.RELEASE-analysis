@@ -20,6 +20,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Interface for resolving properties against any underlying source.
+ * 用于解析任何基础源的属性的接口
  *
  * @author Chris Beams
  * @author Juergen Hoeller
@@ -99,6 +100,10 @@ public interface PropertyResolver {
 	 * @throws IllegalArgumentException if given text is {@code null}
 	 * @see #resolveRequiredPlaceholders
 	 * @see org.springframework.util.SystemPropertyUtils#resolvePlaceholders(String)
+	 * 解析给定文本中的$ {...}占位符，将其替换为相应的
+	 *   由{@link #getProperty}解析的属性值。 无法解决的占位符
+	 *   没有默认值被忽略并传递不变。
+	 *   @param文本要解析的字符串
 	 */
 	String resolvePlaceholders(String text);
 
