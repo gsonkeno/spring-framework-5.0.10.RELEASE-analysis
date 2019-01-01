@@ -93,6 +93,9 @@ import org.springframework.util.StringUtils;
  * references, resolves managed collections, calls initialization methods, etc.
  * Supports autowiring constructors, properties by name, and properties by type.
  *
+ * <p> 提供了bean创建，属性填充，自动装配，初始胡。支持自动装配构造函数，属性按名称和类型装配
+ *
+ * <br>
  * <p>The main template method to be implemented by subclasses is
  * {@link #resolveDependency(DependencyDescriptor, String, Set, TypeConverter)},
  * used for autowiring by type. In case of a factory which is capable of searching
@@ -567,6 +570,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Initialize the bean instance.
+		// 初始化bean
 		Object exposedObject = bean;
 		try {
 			populateBean(beanName, mbd, instanceWrapper);
@@ -1336,12 +1340,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					// AutowiredAnnotationBeanPostProcessor会进入此分支
 					if (bp instanceof InstantiationAwareBeanPostProcessor) {
 						InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-						// eg:参数filteredPds如下:
-						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=ceo]
-						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=class]
-						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=coo]
-						// org.springframework.beans.GenericTypeAwarePropertyDescriptor[name=cto]
 						pvs = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
+						//上行代码执行后,bw.getWrappedInstance()就得到了@Value注解装配属性后的bean了
 						if (pvs == null) {
 							return;
 						}

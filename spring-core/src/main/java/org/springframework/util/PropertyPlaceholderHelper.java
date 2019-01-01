@@ -33,6 +33,10 @@ import org.springframework.lang.Nullable;
  * user-supplied values. <p> Values for substitution can be supplied using a {@link Properties} instance or
  * using a {@link PlaceholderResolver}.
  *
+ * <p>
+ *     一个工具类，用来处理带有占位符的字符串。形如${name}的字符串在该工具类的帮助下，可以被用户提供的值所替代。
+ *     替代途经可能通过Properties实例或者PlaceholderResolver(内部定义的接口)
+ * </p>
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @since 3.0
@@ -124,15 +128,22 @@ public class PropertyPlaceholderHelper {
 		return parseStringValue(value, placeholderResolver, new HashSet<>());
 	}
 
+	/**
+	 *  一个参数示例 value = "${company.ceo}"
+	 *
+ 	 */
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, Set<String> visitedPlaceholders) {
 
 		StringBuilder result = new StringBuilder(value);
 
+		// this.placeholderPrefix = "${"
 		int startIndex = value.indexOf(this.placeholderPrefix);
 		while (startIndex != -1) {
+			// 占位符的结束位置，以value = "${company.ceo}"为例,endIndex=13
 			int endIndex = findPlaceholderEndIndex(result, startIndex);
 			if (endIndex != -1) {
+				// 获取{}里的真正属性名称，此例为"company.ceo"
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
@@ -140,9 +151,13 @@ public class PropertyPlaceholderHelper {
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
+				// 递归调用本方法，因为属性键中可能仍然有占位符
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
+				// 获取属性键placeholder对应的属性值
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
+				// 此处逻辑是当company.ceo=${bi:li}时,company.ceo最终被li所替代的原因
+				// 所以配置文件中，最好不要出现类似${}的东西，因为它本身就会被spring框架所解析
 				if (propVal == null && this.valueSeparator != null) {
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
 					if (separatorIndex != -1) {
@@ -158,6 +173,7 @@ public class PropertyPlaceholderHelper {
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);
+					// 将${company.ceo}替换为li
 					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Resolved placeholder '" + placeholder + "'");

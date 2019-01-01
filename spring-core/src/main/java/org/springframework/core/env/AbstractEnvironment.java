@@ -46,6 +46,9 @@ import org.springframework.util.StringUtils;
  * and working against the {@link MutablePropertySources} API.
  * See {@link ConfigurableEnvironment} javadoc for usage examples.
  *
+ * Environment接口的抽象实现类，支持 active profiles和default profiles概念
+ * 子类需要实现定义的保护方法customizePropertySources(MutablePropertySources)
+ * 该方法中可以操纵资源的优先级顺序
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1

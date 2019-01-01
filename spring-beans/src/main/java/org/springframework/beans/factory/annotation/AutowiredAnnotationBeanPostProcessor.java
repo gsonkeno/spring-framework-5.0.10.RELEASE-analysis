@@ -71,6 +71,10 @@ import org.springframework.util.StringUtils;
  * Such members to be injected are detected through a Java 5 annotation: by default,
  * Spring's {@link Autowired @Autowired} and {@link Value @Value} annotations.
  *
+ * <p>
+ *     装配bean中使用注解标注的成员变量，setter方法, 任意的配置方法。比较典型的是`@Autowired`注解和`@Value`注解。
+ * </p>
+ *
  * <p>Also supports JSR-330's {@link javax.inject.Inject @Inject} annotation,
  * if available, as a direct alternative to Spring's own {@code @Autowired}.
  *
