@@ -114,6 +114,9 @@ public abstract class AopConfigUtils {
 		}
 	}
 
+	/**自动注册AnnotationAwareAspectJAutoProxyCreator类的功能
+	 * cls -> AnnotationAwareAspectJAutoProxyCreator
+	 **/
 	@Nullable
 	private static BeanDefinition registerOrEscalateApcAsRequired(
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
@@ -136,6 +139,7 @@ public abstract class AopConfigUtils {
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		// 注册中心中注册bean name -> org.springframework.aop.config.internalAutoProxyCreator
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

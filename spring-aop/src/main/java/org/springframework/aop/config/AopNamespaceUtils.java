@@ -80,14 +80,26 @@ public abstract class AopNamespaceUtils {
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 处理proxy-target-class属性
+	 * 处理expose-proxy属性
+	 * @param registry
+	 * @param sourceElement
+	 */
 	private static void useClassProxyingIfNecessary(BeanDefinitionRegistry registry, @Nullable Element sourceElement) {
 		if (sourceElement != null) {
+			// 处理proxy-target-class属性
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
+				//其实就是设置beanDefinition.propertyValues属性的一个过程
+				// 例如这里 proxyTargetClass->TRUE
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
+			// 处理expose-proxy属性
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
+				//其实就是设置beanDefinition.propertyValues属性的一个过程
+				// 例如这里 exposeProxy->TRUE
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}
